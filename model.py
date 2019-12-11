@@ -47,10 +47,11 @@ class Denoise(tf.keras.Model):
         for i in range(self.num_conv_layers + 1):
             diff_out = self.diffuse_kernels[i](diff_out)
             spec_out = self.specular_kernels[i](spec_out)
+            #print(tf.shape(diff_out))
         return diff_out, spec_out
-    
+
     def loss(self, denoised, original):
-        
+
         """
         Computes the loss for a batch of images.
         :param denoised: a 4d matrix (batchsize, width, height, 3) of pixel values representing a batch of image, the output of call
@@ -61,10 +62,10 @@ class Denoise(tf.keras.Model):
         original = tf.dtypes.cast(original, tf.float32)
 
     	# model.call() here
-        
+
         return tf.reduce_sum(tf.abs(denoised - original))
 
-    
+
     def accuracy(self, denoised, original):
         """
         Computes the accuracy for a batch of images.
@@ -74,9 +75,9 @@ class Denoise(tf.keras.Model):
         """
         denoised = tf.dtypes.cast(denoised, tf.float32)
         original = tf.dtypes.cast(original, tf.float32)
-        
+
         '''
         for each image in the batch, average the differences between each color channel
-        then average these across each pixel of each image 
+        then average these across each pixel of each image
         '''
         return tf.reduce_mean(tf.reduce_mean(tf.abs(denoised - original), 3))
