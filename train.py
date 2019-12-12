@@ -42,8 +42,8 @@ def train():
 	inputs_alb = tf.reshape(inputs_alb, (num_images, width, height, num_channels))
 	labels = tf.reshape(labels, (num_images, width, height, num_channels))
     
-	inputs_diff = tf.math.divide(255 * inputs_diff, 255  * inputs_alb + EPSILON)/255
-	inputs_spec = tf.math.log(255 * inputs_spec + 1)/255
+	inputs_diff = tf.math.divide(inputs_diff, inputs_alb + EPSILON)
+	inputs_spec = tf.math.log(inputs_spec + 1)
 	for epoch in range(NUM_EPOCH):
 		for i in range(0, num_images):
 		#for i in range(0, num_images, BATCH_SIZE):
@@ -81,7 +81,7 @@ def write_prediction(inputs_diff, inputs_spec, inputs_alb, model):
 	cv2.imwrite(s, prediction)
 
 def construct_image(inputs_diff, inputs_spec, inputs_alb):
-	return tf.math.multiply(EPSILON * inputs_alb * 255, inputs_diff * 255) + tf.math.exp(inputs_spec * 255) - 1
+	return tf.math.multiply(EPSILON + inputs_alb, inputs_diff) + tf.math.exp(inputs_spec) - 1
 
 if __name__ == '__main__':
 	train()
