@@ -36,12 +36,12 @@ def get_data(filepath):
 	"""
 
 	# currently hard coding cornell box image
-	x = cv2.imread(filepath + '/Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH) # 100 samples (will end up being 32 or 128)
-	y = cv2.imread(filepath + '/Noisy_Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)       # 1000 samples (will end up being 1024)
+	#x = cv2.imread(filepath + '/Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH) # 100 samples (will end up being 32 or 128)
+	#y = cv2.imread(filepath + '/Noisy_Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)       # 1000 samples (will end up being 1024)
 
-	cv2.imshow('actual', x)
-	cv2.imshow('noisy', y)
-	cv2.waitKey(0)
+	#cv2.imshow('actual', x)
+	#cv2.imshow('noisy', y)
+	#cv2.waitKey(0)
 
 	diffuse = cv2.imread(filepath + '/diffuse/Noisy_Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
 	specular = cv2.imread(filepath + '/specular/Noisy_Motion_blur.exr', cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
