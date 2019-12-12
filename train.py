@@ -8,7 +8,7 @@ import cv2
 
 # will change hyperparameters later
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_epoch', type=int, default=1, help='Number of epochs to run [default: 10]')
+parser.add_argument('--num_epoch', type=int, default=10, help='Number of epochs to run [default: 10]')
 parser.add_argument('--batch_size', type=int, default=5, help='Batch size [default: 5]')
 parser.add_argument('--patch_size', type=int, default=100, help='Patch size [default: 100]')
 parser.add_argument('--learning_rate', type=int, default=0.0001, help='Learning rate [default: e-5]')
@@ -41,20 +41,12 @@ def train():
 	inputs_spec = tf.reshape(inputs_spec, (num_images, width, height, num_channels))
 	inputs_alb = tf.reshape(inputs_alb, (num_images, width, height, num_channels))
 	labels = tf.reshape(labels, (num_images, width, height, num_channels))
-
-	s = 'images/original_cornell_box.png'
-	inputs = np.array((inputs_diff + inputs_spec) * 255)
-	inputs = inputs.astype(np.uint8)
-	inputs = np.clip(np.reshape(inputs, (inputs.shape[1], inputs.shape[2], 3)), 0, 255)
-	cv2.imwrite(s, inputs)
-
-	#inputs_diff = tf.math.divide(inputs_diff, inputs_alb + EPSILON) / 255
-	inputs_diff /= 255
-	inputs_spec /= 255 #= tf.math.log(inputs_spec + 1)/255
-	labels /= 255
+    
+	inputs_diff = tf.math.divide(255 * inputs_diff, 255  * inputs_alb + EPSILON)/255
+	inputs_spec = tf.math.log(255 * inputs_spec + 1)/255
 	for epoch in range(NUM_EPOCH):
 		for i in range(0, num_images):
-		#for i in range(0, num_images - BATCH_SIZE, BATCH_SIZE):
+		#for i in range(0, num_images, BATCH_SIZE):
 			for j in range(0, width, PATCH_SIZE):
 				for k in range(0, height, PATCH_SIZE):
 					with tf.GradientTape() as tape:
@@ -64,8 +56,7 @@ def train():
 						batch_patch_inputs_alb = tf.slice(inputs_alb, begin=[0, j, k, 0], size=[num_images, PATCH_SIZE, PATCH_SIZE, num_channels])
 						batch_patch_labels = tf.slice(labels, begin=[0, j, k, 0], size=[num_images, PATCH_SIZE, PATCH_SIZE, num_channels])
 						diffuse, specular = model.call(batch_patch_inputs_diff, batch_patch_inputs_spec)
-						#predictions = construct_image(batch_patch_inputs_diff, batch_patch_inputs_spec, batch_patch_inputs_alb)
-						predictions = diffuse + specular
+						predictions = construct_image(diffuse, specular, batch_patch_inputs_alb)
 						loss = model.loss(predictions, batch_patch_labels)
 					gradients = tape.gradient(loss, model.trainable_variables)
 					optimizer.apply_gradients(zip(gradients, model.trainable_variables))
@@ -79,8 +70,10 @@ def train():
 
 def write_prediction(inputs_diff, inputs_spec, inputs_alb, model):
 	prediction_diff, prediction_spec = model.call(inputs_diff, inputs_spec)
-	#prediction = np.array(construct_image(inputs_diff, inputs_spec, inputs_alb))
-	prediction = np.array((prediction_diff + prediction_spec) * 255)
+	diff = np.clip(np.array(prediction_diff), 0, 1)
+	spec = np.clip(np.array(prediction_spec), 0, 1)
+	alb = np.clip(np.array(inputs_alb), 0, 1)
+	prediction = np.array(construct_image(diff, spec, alb)) * 255
 	prediction = prediction.astype(np.uint8)
 	prediction = np.clip(np.reshape(prediction, (prediction.shape[1], prediction.shape[2], 3)), 0, 255)
 
@@ -88,7 +81,7 @@ def write_prediction(inputs_diff, inputs_spec, inputs_alb, model):
 	cv2.imwrite(s, prediction)
 
 def construct_image(inputs_diff, inputs_spec, inputs_alb):
-	return tf.math.multiply(EPSILON * inputs_alb, inputs_diff) + tf.math.exp(inputs_spec) - 1
+	return tf.math.multiply(EPSILON * inputs_alb * 255, inputs_diff * 255) + tf.math.exp(inputs_spec * 255) - 1
 
 if __name__ == '__main__':
 	train()
