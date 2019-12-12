@@ -8,7 +8,7 @@ import cv2
 
 # will change hyperparameters later
 parser = argparse.ArgumentParser()
-parser.add_argument('--num_epoch', type=int, default=10, help='Number of epochs to run [default: 10]')
+parser.add_argument('--num_epoch', type=int, default=1, help='Number of epochs to run [default: 10]')
 parser.add_argument('--batch_size', type=int, default=5, help='Batch size [default: 5]')
 parser.add_argument('--patch_size', type=int, default=100, help='Patch size [default: 100]')
 parser.add_argument('--learning_rate', type=int, default=0.0001, help='Learning rate [default: e-5]')
@@ -42,8 +42,11 @@ def train():
 	inputs_alb = tf.reshape(inputs_alb, (num_images, width, height, num_channels))
 	labels = tf.reshape(labels, (num_images, width, height, num_channels))
 
-	#s = 'images/original_cornell_box.png'
-	#imwrite(s, inputs)
+	s = 'images/original_cornell_box.png'
+	inputs = np.array((inputs_diff + inputs_spec) * 255)
+	inputs = inputs.astype(np.uint8)
+	inputs = np.clip(np.reshape(inputs, (inputs.shape[1], inputs.shape[2], 3)), 0, 255)
+	cv2.imwrite(s, inputs)
 
 	#inputs_diff = tf.math.divide(inputs_diff, inputs_alb + EPSILON) / 255
 	inputs_diff /= 255
@@ -79,7 +82,7 @@ def write_prediction(inputs_diff, inputs_spec, inputs_alb, model):
 	#prediction = np.array(construct_image(inputs_diff, inputs_spec, inputs_alb))
 	prediction = np.array((prediction_diff + prediction_spec) * 255)
 	prediction = prediction.astype(np.uint8)
-	prediction = np.clip(np.reshape(prediction, (512, 512, 3)), 0, 255)
+	prediction = np.clip(np.reshape(prediction, (prediction.shape[1], prediction.shape[2], 3)), 0, 255)
 
 	s = 'images/predicted_image.png'
 	cv2.imwrite(s, prediction)
