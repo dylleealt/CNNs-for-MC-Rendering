@@ -41,17 +41,12 @@ def train():
 	inputs_spec = tf.reshape(inputs_spec, (num_images, width, height, num_channels))
 	inputs_alb = tf.reshape(inputs_alb, (num_images, width, height, num_channels))
 	labels = tf.reshape(labels, (num_images, width, height, num_channels))
-
-	#s = 'images/original_cornell_box.png'
-	#imwrite(s, inputs)
-
-	#inputs_diff = tf.math.divide(inputs_diff, inputs_alb + EPSILON) / 255
-	inputs_diff /= 255
-	inputs_spec /= 255 #= tf.math.log(inputs_spec + 1)/255
-	labels /= 255
+    
+	inputs_diff = tf.math.divide(inputs_diff, inputs_alb + EPSILON)
+	inputs_spec = tf.math.log(inputs_spec + 1)
 	for epoch in range(NUM_EPOCH):
 		for i in range(0, num_images):
-		#for i in range(0, num_images - BATCH_SIZE, BATCH_SIZE):
+		#for i in range(0, num_images, BATCH_SIZE):
 			for j in range(0, width, PATCH_SIZE):
 				for k in range(0, height, PATCH_SIZE):
 					with tf.GradientTape() as tape:
@@ -61,8 +56,7 @@ def train():
 						batch_patch_inputs_alb = tf.slice(inputs_alb, begin=[0, j, k, 0], size=[num_images, PATCH_SIZE, PATCH_SIZE, num_channels])
 						batch_patch_labels = tf.slice(labels, begin=[0, j, k, 0], size=[num_images, PATCH_SIZE, PATCH_SIZE, num_channels])
 						diffuse, specular = model.call(batch_patch_inputs_diff, batch_patch_inputs_spec)
-						#predictions = construct_image(batch_patch_inputs_diff, batch_patch_inputs_spec, batch_patch_inputs_alb)
-						predictions = diffuse + specular
+						predictions = construct_image(diffuse, specular, batch_patch_inputs_alb)
 						loss = model.loss(predictions, batch_patch_labels)
 					gradients = tape.gradient(loss, model.trainable_variables)
 					optimizer.apply_gradients(zip(gradients, model.trainable_variables))
@@ -76,16 +70,18 @@ def train():
 
 def write_prediction(inputs_diff, inputs_spec, inputs_alb, model):
 	prediction_diff, prediction_spec = model.call(inputs_diff, inputs_spec)
-	#prediction = np.array(construct_image(inputs_diff, inputs_spec, inputs_alb))
-	prediction = np.array((prediction_diff + prediction_spec) * 255)
+	diff = np.clip(np.array(prediction_diff), 0, 1)
+	spec = np.clip(np.array(prediction_spec), 0, 1)
+	alb = np.clip(np.array(inputs_alb), 0, 1)
+	prediction = np.array(construct_image(diff, spec, alb)) * 255
 	prediction = prediction.astype(np.uint8)
-	prediction = np.clip(np.reshape(prediction, (512, 512, 3)), 0, 255)
+	prediction = np.clip(np.reshape(prediction, (prediction.shape[1], prediction.shape[2], 3)), 0, 255)
 
 	s = 'images/predicted_image.png'
 	cv2.imwrite(s, prediction)
 
 def construct_image(inputs_diff, inputs_spec, inputs_alb):
-	return tf.math.multiply(EPSILON * inputs_alb, inputs_diff) + tf.math.exp(inputs_spec) - 1
+	return tf.math.multiply(EPSILON + inputs_alb, inputs_diff) + tf.math.exp(inputs_spec) - 1
 
 if __name__ == '__main__':
 	train()
