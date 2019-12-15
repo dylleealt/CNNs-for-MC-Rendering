@@ -2,9 +2,6 @@ import os
 import numpy as np
 import tensorflow as tf
 
-# Killing optional CPU driver warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 class DiffuseModel(tf.keras.Model):
     def __init__(self, FLAGS):
         super(DiffuseModel, self).__init__()
@@ -42,16 +39,6 @@ class DiffuseModel(tf.keras.Model):
         """
         return tf.reduce_mean(tf.abs(denoised - gt))
 
-
-    def accuracy(self, denoised, gt):
-        """
-        Computes the accuracy for a batch of images.
-        :param denoised: a 4d matrix (batchsize, width, height, 3)
-        :param original: a 4d matrix (batchsize, width, height, 3)
-        :return: accuracy, a TensorFlow scalar
-        """        
-        return 1.0 - (tf.reduce_mean(tf.abs(denoised - gt))
-
 class SpecularModel(tf.keras.Model):
     def __init__(self, FLAGS):
         super(SpecularModel, self).__init__()
@@ -88,13 +75,3 @@ class SpecularModel(tf.keras.Model):
         :return: loss, a TensorFlow scalar
         """
         return tf.reduce_mean(tf.abs(denoised - gt))
-
-
-    def accuracy(self, denoised, gt):
-        """
-        Computes the accuracy for a batch of images.
-        :param denoised: a 4d matrix (batchsize, width, height, 3)
-        :param original: a 4d matrix (batchsize, width, height, 3)
-        :return: accuracy, a TensorFlow scalar
-        """        
-        return 1.0 - (tf.reduce_mean(tf.abs(denoised - gt))
