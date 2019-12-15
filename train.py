@@ -79,7 +79,7 @@ def test():
 	checkpoint = tf.train.Checkpoint(diffuse=diffuse_model, specular=specular_model)
 	status = checkpoint.restore(tf.train.latest_checkpoint(FLAGS.log_dir))
 
-	
+
 
 	return
 
