@@ -31,7 +31,7 @@ def apply_kernel(image, weights):
 
 def train():
 	# load dataset iterator
-	dataset = load_dataset(FLAGS.dataset)
+	dataset = load_dataset(FLAGS.dataset, FLAGS.batch_size)
 
 	# initialize diffuse and specular models
 	diffuse_model = DiffuseModel()
@@ -69,7 +69,7 @@ def train():
 
 def test():
 	# load dataset iterator
-	dataset = load_dataset(FLAGS.dataset)
+	dataset = load_dataset(FLAGS.dataset, FLAGS.batch_size, is_testing=True)
 
 	# initialize diffuse and specular models
 	diffuse_model = DiffuseModel()

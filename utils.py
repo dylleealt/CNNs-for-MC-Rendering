@@ -15,6 +15,11 @@ def write_image(filepath, image):
 
 def read_exr(filepath):
 	file = pyexr.open(filepath)
+    data = file.get_all()
+    for k, v in data.items():
+        data[k] = np.nan_to_num(v)
+
+    return data
 
 def write_exr(filepath, data):
 	pass
